@@ -1,13 +1,12 @@
 import { Source } from "@shared/schema";
 
-const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
+const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-export interface PerplexityResponse {
+export interface OpenRouterResponse {
   id: string;
   model: string;
   object: string;
   created: number;
-  citations: string[];
   choices: {
     index: number;
     finish_reason: string;
@@ -27,30 +26,29 @@ export class PerplexityService {
   private apiKey: string;
 
   constructor() {
-    this.apiKey = process.env.PERPLEXITY_API_KEY || "";
-    if (!this.apiKey) {
-      console.warn("PERPLEXITY_API_KEY not found in environment variables");
-    }
+    this.apiKey = process.env.OPENROUTER_API_KEY || "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";
   }
 
-  async search(query: string, searchDomains?: string[]): Promise<{ content: string; sources: Source[] }> {
+  async search(query: string): Promise<{ content: string; sources: Source[] }> {
     if (!this.apiKey) {
-      throw new Error("Perplexity API key not configured");
+      throw new Error("OpenRouter API key not configured");
     }
 
     try {
-      const response = await fetch(PERPLEXITY_API_URL, {
+      const response = await fetch(OPENROUTER_API_URL, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
+          "HTTP-Referer": "https://deeparchive.ai",
+          "X-Title": "Deep Archive AI"
         },
         body: JSON.stringify({
-          model: "llama-3.1-sonar-small-128k-online",
+          model: "deepseek/deepseek-r1:free",
           messages: [
             {
               role: "system",
-              content: "You are a deep research AI assistant specializing in finding declassified documents, historical archives, and comprehensive information. Always provide detailed, factual responses with proper citations. Focus on primary sources, official documents, and verified historical information."
+              content: "You are a deep research AI assistant specializing in finding declassified documents, historical archives, and comprehensive information. Always provide detailed, factual responses with proper citations in your answer. Focus on primary sources, official documents, and verified historical information. When you mention sources, reference them with [1], [2], etc."
             },
             {
               role: "user",
@@ -59,27 +57,23 @@ export class PerplexityService {
           ],
           max_tokens: 2000,
           temperature: 0.2,
-          top_p: 0.9,
-          search_domain_filter: searchDomains,
-          return_images: false,
-          return_related_questions: false,
-          search_recency_filter: "month",
-          top_k: 0,
-          stream: false,
-          presence_penalty: 0,
-          frequency_penalty: 1
+          top_p: 0.9
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`OpenRouter API error: ${response.status} ${errorText}`);
       }
 
-      const data: PerplexityResponse = await response.json();
+      const data: OpenRouterResponse = await response.json();
+      const content = data.choices[0]?.message.content || "";
       
-      // Convert citations to Source objects
-      const sources: Source[] = data.citations.map((url, index) => {
-        // Determine source type based on URL
+      // Extract URLs from content and create sources
+      const urlRegex = /https?:\/\/[^\s)]+/g;
+      const urls = content.match(urlRegex) || [];
+      
+      const sources: Source[] = urls.slice(0, 10).map((url, index) => {
         let type: Source['type'] = 'web';
         let description = '';
 
@@ -107,22 +101,22 @@ export class PerplexityService {
         }
 
         return {
-          id: `perplexity-${index + 1}`,
+          id: `ai-${index + 1}`,
           title: `Source ${index + 1}`,
           url,
           type,
           description,
-          snippet: data.choices[0]?.message.content.substring(0, 200) + '...',
+          snippet: content.substring(0, 200) + '...',
         };
       });
 
       return {
-        content: data.choices[0]?.message.content || "",
+        content,
         sources,
       };
     } catch (error) {
-      console.error("Perplexity search error:", error);
-      throw new Error(`Failed to search with Perplexity: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("AI search error:", error);
+      throw new Error(`Failed to search: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }
