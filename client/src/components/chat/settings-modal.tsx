@@ -19,6 +19,8 @@ interface SettingsModalProps {
   onMaxSourcesChange: (value: number) => void;
   archiveYears: number;
   onArchiveYearsChange: (value: number) => void;
+  selectedModel: string;
+  onModelChange: (model: string) => void;
 }
 
 export default function SettingsModal({
@@ -30,16 +32,19 @@ export default function SettingsModal({
   onMaxSourcesChange,
   archiveYears,
   onArchiveYearsChange,
+  selectedModel,
+  onModelChange,
 }: SettingsModalProps) {
   const [localSources, setLocalSources] = useState(selectedSources);
   const [localMaxSources, setLocalMaxSources] = useState(maxSources);
   const [localArchiveYears, setLocalArchiveYears] = useState(archiveYears);
-  const [selectedModel, setSelectedModel] = useState('deepseek-r1');
+  const [localSelectedModel, setLocalSelectedModel] = useState(selectedModel);
 
   const handleSave = () => {
     onSourcesChange(localSources);
     onMaxSourcesChange(localMaxSources);
     onArchiveYearsChange(localArchiveYears);
+    onModelChange(localSelectedModel);
     onClose();
   };
 
@@ -47,6 +52,7 @@ export default function SettingsModal({
     setLocalSources(selectedSources);
     setLocalMaxSources(maxSources);
     setLocalArchiveYears(archiveYears);
+    setLocalSelectedModel(selectedModel);
     onClose();
   };
 
@@ -60,20 +66,30 @@ export default function SettingsModal({
 
   const aiModels = [
     {
-      id: 'deepseek-r1',
-      name: 'DeepSeek R1 32B',
-      description: 'Best reasoning, free via HuggingFace',
+      id: 'groq-llama',
+      name: 'Llama 3.3 70B (Groq)',
+      description: 'Fast & reliable, best overall performance',
       recommended: true
     },
     {
-      id: 'qwen-72b',
-      name: 'Qwen 2.5 72B',
-      description: 'Multilingual, strong research capabilities'
+      id: 'huggingface-qwen',
+      name: 'Qwen 2.5 7B',
+      description: 'Multilingual, strong reasoning'
     },
     {
-      id: 'llama-70b',
-      name: 'Llama 3.3 70B',
-      description: 'General purpose, reliable performance'
+      id: 'huggingface-phi',
+      name: 'Phi-3.5 Mini',
+      description: 'Compact & efficient'
+    },
+    {
+      id: 'huggingface-mistral',
+      name: 'Mistral 7B',
+      description: 'Balanced performance'
+    },
+    {
+      id: 'openrouter-deepseek',
+      name: 'DeepSeek R1',
+      description: 'Advanced reasoning (may have rate limits)'
     }
   ];
 
@@ -114,8 +130,8 @@ export default function SettingsModal({
                     <input
                       type="radio"
                       name="model"
-                      checked={selectedModel === model.id}
-                      onChange={() => setSelectedModel(model.id)}
+                      checked={localSelectedModel === model.id}
+                      onChange={() => setLocalSelectedModel(model.id)}
                       className="w-4 h-4 text-primary"
                     />
                     <div>

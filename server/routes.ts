@@ -14,7 +14,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat endpoint - main AI search functionality
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, conversationId, sources, maxSources, archiveYears } = chatRequestSchema.parse(req.body);
+      const { message, conversationId, sources, maxSources, archiveYears, selectedModel } = chatRequestSchema.parse(req.body);
 
       // Create or get conversation
       let conversation;
@@ -45,8 +45,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let aiResponse = "";
 
       try {
-        // 1. Search with AI Router (automatic fallback to free models)
-        const aiResult = await aiRouter.searchWithFallback(message);
+        // 1. Search with AI Router (with optional model selection)
+        const aiResult = selectedModel 
+          ? await aiRouter.searchWithSpecificModel(message, selectedModel)
+          : await aiRouter.searchWithFallback(message);
         aiResponse = `[Using ${aiResult.modelUsed}]\n\n${aiResult.content}`;
         allSources.push(...aiResult.sources);
         

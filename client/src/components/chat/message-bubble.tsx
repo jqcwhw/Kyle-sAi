@@ -50,16 +50,15 @@ export default function MessageBubble({ message, onCitationClick, onBookmark }: 
   };
 
   const contentParts = parseContentWithCitations(message.content);
-  const formatTimestamp = (date: Date | string) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    const now = new Date();
-    const diffInMs = now.getTime() - dateObj.getTime();
-    const diffInMins = Math.floor(diffInMs / 60000);
-
-    if (diffInMins < 1) return 'Just now';
-    if (diffInMins < 60) return `${diffInMins}m ago`;
-    if (diffInMins < 1440) return `${Math.floor(diffInMins / 60)}h ago`;
-    return dateObj.toLocaleDateString();
+  const formatTimestamp = (date: Date | string | undefined) => {
+    if (!date) return '';
+    const d = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   if (isUser) {

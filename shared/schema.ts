@@ -88,11 +88,12 @@ export type SearchHistoryItem = typeof searchHistory.$inferSelect;
 
 // Chat request/response types
 export const chatRequestSchema = z.object({
-  message: z.string().min(1),
+  message: z.string().min(1).max(5000),
   conversationId: z.string().optional(),
   sources: z.array(z.enum(['cia', 'fbi', 'nara', 'nsa', 'wayback', 'web'])).default(['cia', 'fbi', 'nara', 'nsa', 'wayback', 'web']),
-  maxSources: z.number().min(5).max(50).default(20),
-  archiveYears: z.number().min(5).max(75).default(25),
+  maxSources: z.number().min(5).max(100).default(20),
+  archiveYears: z.number().min(1).max(75).default(25),
+  selectedModel: z.string().optional(),
 });
 
 export type ChatRequest = z.infer<typeof chatRequestSchema>;

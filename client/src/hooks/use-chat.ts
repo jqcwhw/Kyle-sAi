@@ -7,6 +7,7 @@ interface ChatOptions {
   sources?: string[];
   maxSources?: number;
   archiveYears?: number;
+  selectedModel?: string;
 }
 
 export function useChat(conversationId?: string) {
@@ -28,6 +29,7 @@ export function useChat(conversationId?: string) {
         sources: options.sources as ChatRequest['sources'] || ['cia', 'fbi', 'nara', 'nsa', 'wayback', 'web'],
         maxSources: options.maxSources || 20,
         archiveYears: options.archiveYears || 25,
+        selectedModel: options.selectedModel,
       };
 
       const response = await apiRequest('POST', '/api/chat', chatRequest);

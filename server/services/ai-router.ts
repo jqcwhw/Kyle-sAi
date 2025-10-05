@@ -12,41 +12,78 @@ interface AIModelConfig {
 
 const AI_MODELS: AIModelConfig[] = [
   {
-    id: 'deepseek-r1',
-    name: 'DeepSeek R1',
-    endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-    apiKey: process.env.OPENROUTER_API_KEY,
-    isFree: true,
-    priority: 1
-  },
-  {
-    id: 'huggingface-mistral',
-    name: 'Mistral 7B (HuggingFace)',
-    endpoint: 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3',
-    apiKey: process.env.HUGGINGFACE_API_KEY,
-    isFree: true,
-    priority: 2
-  },
-  {
-    id: 'huggingface-llama',
-    name: 'Llama 3.2 (HuggingFace)',
-    endpoint: 'https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct',
-    apiKey: process.env.HUGGINGFACE_API_KEY,
-    isFree: true,
-    priority: 3
-  },
-  {
     id: 'groq-llama',
     name: 'Llama 3.3 70B (Groq)',
     endpoint: 'https://api.groq.com/openai/v1/chat/completions',
     apiKey: process.env.GROQ_API_KEY || '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',
     isFree: true,
+    priority: 1
+  },
+  {
+    id: 'huggingface-qwen',
+    name: 'Qwen 2.5 7B (HuggingFace)',
+    endpoint: 'https://api-inference.huggingface.co/models/Qwen/Qwen2.5-7B-Instruct',
+    apiKey: process.env.HUGGINGFACE_API_KEY,
+    isFree: true,
+    priority: 2
+  },
+  {
+    id: 'huggingface-phi',
+    name: 'Phi-3.5 Mini (HuggingFace)',
+    endpoint: 'https://api-inference.huggingface.co/models/microsoft/Phi-3.5-mini-instruct',
+    apiKey: process.env.HUGGINGFACE_API_KEY,
+    isFree: true,
+    priority: 3
+  },
+  {
+    id: 'huggingface-mistral',
+    name: 'Mistral 7B (HuggingFace)',
+    endpoint: 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2',
+    apiKey: process.env.HUGGINGFACE_API_KEY,
+    isFree: true,
     priority: 4
+  },
+  {
+    id: 'openrouter-deepseek',
+    name: 'DeepSeek R1 (OpenRouter)',
+    endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+    apiKey: process.env.OPENROUTER_API_KEY,
+    isFree: true,
+    priority: 5
   }
 ];
 
 export class AIRouter {
   private failedModels: Set<string> = new Set();
+  private lastRequestTime: Map<string, number> = new Map();
+  private minDelayMs = 2000; // 2 second minimum delay between requests
+  
+  async searchWithSpecificModel(query: string, modelId: string): Promise<{ content: string; sources: Source[]; modelUsed: string }> {
+    const model = AI_MODELS.find(m => m.id === modelId);
+    if (!model) {
+      throw new Error(`Model ${modelId} not found`);
+    }
+    
+    // Rate limit protection
+    const lastRequest = this.lastRequestTime.get(model.id) || 0;
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequest;
+    
+    if (timeSinceLastRequest < this.minDelayMs) {
+      const waitTime = this.minDelayMs - timeSinceLastRequest;
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
+    this.lastRequestTime.set(model.id, Date.now());
+    
+    try {
+      const result = await this.searchWithModel(query, model);
+      return { ...result, modelUsed: model.name };
+    } catch (error) {
+      console.error(`${model.name} failed:`, error);
+      throw error;
+    }
+  }
   
   async searchWithFallback(query: string): Promise<{ content: string; sources: Source[]; modelUsed: string }> {
     const availableModels = AI_MODELS

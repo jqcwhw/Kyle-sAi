@@ -22,6 +22,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [selectedSourceTypes, setSelectedSourceTypes] = useState<string[]>(['cia', 'fbi', 'nara', 'nsa', 'wayback', 'web']);
   const [maxSources, setMaxSources] = useState(20);
   const [archiveYears, setArchiveYears] = useState(25);
+  const [selectedModel, setSelectedModel] = useState('groq-llama');
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -55,7 +56,8 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     await sendMessage(userMessage, {
       sources: selectedSourceTypes,
       maxSources,
-      archiveYears
+      archiveYears,
+      selectedModel
     });
   };
 
@@ -353,6 +355,8 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
         onMaxSourcesChange={setMaxSources}
         archiveYears={archiveYears}
         onArchiveYearsChange={setArchiveYears}
+        selectedModel={selectedModel}
+        onModelChange={setSelectedModel}
       />
     </div>
   );
