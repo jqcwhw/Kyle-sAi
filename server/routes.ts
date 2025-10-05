@@ -4,6 +4,8 @@ import { storage } from "./storage";
 import { perplexityService } from "./services/perplexity";
 import { archivalSearchService } from "./services/archival-search";
 import { waybackMachineService } from "./services/wayback-machine";
+import { aiRouter } from "./services/ai-router";
+import { deepScraper } from "./services/deep-scraper";
 import { chatRequestSchema, insertSearchHistorySchema, insertBookmarkSchema, type ChatResponse, type Source } from "@shared/schema";
 import { z } from "zod";
 
@@ -43,23 +45,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let aiResponse = "";
 
       try {
-        // 1. Search with Perplexity AI for web results and initial analysis
-        const perplexityResult = await perplexityService.search(message);
-        aiResponse = perplexityResult.content;
-        allSources.push(...perplexityResult.sources);
+        // 1. Search with AI Router (automatic fallback to free models)
+        const aiResult = await aiRouter.searchWithFallback(message);
+        aiResponse = `[Using ${aiResult.modelUsed}]\n\n${aiResult.content}`;
+        allSources.push(...aiResult.sources);
+        
+        // 2. Deep scrape archives if AI search is limited
+        try {
+          const scrapedSources = await deepScraper.scrapeArchives(message);
+          allSources.push(...scrapedSources);
+        } catch (scrapeError) {
+          console.error("Scraping error:", scrapeError);
+        }
 
-        // 2. Search archival sources if requested
+        // 3. Search archival sources if requested
         const archivalSources = sources.filter(s => ['cia', 'fbi', 'nara', 'nsa'].includes(s));
         if (archivalSources.length > 0) {
           const archivalResults = await archivalSearchService.search({
             sources: archivalSources,
-            maxResults: Math.floor(maxSources * 0.6), // 60% from archival sources
+            maxResults: Math.floor(maxSources * 0.6),
             query: message
           });
           allSources.push(...archivalResults);
         }
 
-        // 3. Search Wayback Machine if requested
+        // 4. Search Wayback Machine if requested
         if (sources.includes('wayback')) {
           const waybackResults = await waybackMachineService.search({
             query: message,
