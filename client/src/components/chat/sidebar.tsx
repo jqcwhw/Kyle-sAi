@@ -41,7 +41,7 @@ export default function Sidebar({ isOpen, onClose, onNewChat, onOpenSettings }: 
     const now = new Date();
     const diff = now.getTime() - d.getTime();
     const hours = Math.floor(diff / 3600000);
-    
+
     if (hours < 1) return "Just now";
     if (hours < 24) return `${hours}h ago`;
     if (hours < 48) return "Yesterday";
@@ -58,7 +58,7 @@ export default function Sidebar({ isOpen, onClose, onNewChat, onOpenSettings }: 
           data-testid="sidebar-overlay"
         />
       )}
-      
+
       {/* Sidebar */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50 w-72 bg-card border-r border-border flex flex-col
@@ -66,7 +66,7 @@ export default function Sidebar({ isOpen, onClose, onNewChat, onOpenSettings }: 
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:flex'}
         ${isOpen ? 'flex' : 'hidden lg:flex'}
       `} data-testid="sidebar">
-        
+
         {/* Logo & Header */}
         <div className="p-6 border-b border-border">
           <div className="flex items-center justify-between mb-2">
@@ -139,7 +139,7 @@ export default function Sidebar({ isOpen, onClose, onNewChat, onOpenSettings }: 
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                 Recent Searches
               </h3>
-              
+
               {conversations.length === 0 && searchHistory.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -211,7 +211,7 @@ export default function Sidebar({ isOpen, onClose, onNewChat, onOpenSettings }: 
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                 Bookmarked Discoveries
               </h3>
-              
+
               {bookmarks.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Bookmark className="w-8 h-8 mx-auto mb-2 opacity-50" />

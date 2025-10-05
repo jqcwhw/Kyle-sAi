@@ -1,6 +1,7 @@
 import { Message } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { User, Search, Bookmark, Share } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface MessageBubbleProps {
   message: Message;
@@ -10,7 +11,7 @@ interface MessageBubbleProps {
 
 export default function MessageBubble({ message, onCitationClick, onBookmark }: MessageBubbleProps) {
   const isUser = message.role === "user";
-  
+
   // Parse citations from message content
   const parseContentWithCitations = (content: string) => {
     const citationRegex = /\[(\d+)\]/g;
@@ -26,17 +27,17 @@ export default function MessageBubble({ message, onCitationClick, onBookmark }: 
           content: content.slice(lastIndex, match.index)
         });
       }
-      
+
       // Add citation
       parts.push({
         type: 'citation',
         content: match[1],
         sourceId: message.sources?.[parseInt(match[1]) - 1]?.id
       });
-      
+
       lastIndex = match.index + match[0].length;
     }
-    
+
     // Add remaining text
     if (lastIndex < content.length) {
       parts.push({
@@ -44,7 +45,7 @@ export default function MessageBubble({ message, onCitationClick, onBookmark }: 
         content: content.slice(lastIndex)
       });
     }
-    
+
     return parts.length > 0 ? parts : [{ type: 'text', content }];
   };
 
@@ -53,7 +54,7 @@ export default function MessageBubble({ message, onCitationClick, onBookmark }: 
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
-    
+
     if (minutes < 1) return "Just now";
     if (minutes < 60) return `${minutes}m ago`;
     if (minutes < 1440) return `${Math.floor(minutes / 60)}h ago`;
@@ -62,12 +63,20 @@ export default function MessageBubble({ message, onCitationClick, onBookmark }: 
 
   if (isUser) {
     return (
-      <div className="flex items-start gap-4 message-bubble" data-testid="message-user">
+      <div className={cn(
+        "flex gap-2 md:gap-3 message-bubble px-2 md:px-0",
+        message.role === 'user' ? 'justify-end' : 'justify-start'
+      )}>
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center flex-shrink-0">
           <User className="text-white w-5 h-5" />
         </div>
         <div className="flex-1">
-          <div className="bg-muted/20 rounded-2xl rounded-tl-sm p-4">
+          <div className={cn(
+            "rounded-lg p-3 md:p-4 max-w-[85vw] md:max-w-3xl break-words",
+            message.role === 'user'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-card border border-border'
+          )}>
             <p className="text-foreground">{message.content}</p>
           </div>
           <p className="text-xs text-muted-foreground mt-2 ml-1">
@@ -79,12 +88,20 @@ export default function MessageBubble({ message, onCitationClick, onBookmark }: 
   }
 
   return (
-    <div className="flex items-start gap-4 message-bubble" data-testid="message-assistant">
+    <div className={cn(
+      "flex gap-2 md:gap-3 message-bubble px-2 md:px-0",
+      message.role === 'user' ? 'justify-end' : 'justify-start'
+    )}>
       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
         <Search className="text-white w-5 h-5" />
       </div>
       <div className="flex-1">
-        <div className="bg-card border border-border rounded-2xl rounded-tl-sm p-5">
+        <div className={cn(
+          "rounded-lg p-3 md:p-4 max-w-[85vw] md:max-w-3xl break-words",
+          message.role === 'user'
+            ? 'bg-primary text-primary-foreground'
+            : 'bg-card border border-border'
+        )}>
           <div className="prose prose-invert max-w-none">
             <div className="text-foreground leading-relaxed space-y-4">
               {contentParts.map((part, index) => (
@@ -134,7 +151,7 @@ export default function MessageBubble({ message, onCitationClick, onBookmark }: 
                   }[type] || { label: type, color: 'muted' };
 
                   const count = message.sources!.filter(s => s.type === type).length;
-                  
+
                   return (
                     <span
                       key={type}
@@ -149,7 +166,7 @@ export default function MessageBubble({ message, onCitationClick, onBookmark }: 
             </div>
           )}
         </div>
-        
+
         <div className="flex items-center gap-3 mt-2 ml-1">
           <p className="text-xs text-muted-foreground">
             {formatTimestamp(message.timestamp)}

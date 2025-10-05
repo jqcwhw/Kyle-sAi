@@ -22,36 +22,36 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [selectedSourceTypes, setSelectedSourceTypes] = useState<string[]>(['cia', 'fbi', 'nara', 'nsa', 'wayback', 'web']);
   const [maxSources, setMaxSources] = useState(20);
   const [archiveYears, setArchiveYears] = useState(25);
-  
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { 
-    messages, 
-    isLoading, 
-    sendMessage, 
-    currentConversationId 
+  const {
+    messages,
+    isLoading,
+    sendMessage,
+    currentConversationId
   } = useChat(conversationId);
 
-  const { 
-    selectedSource, 
-    selectSource, 
-    isDocumentPreviewOpen, 
+  const {
+    selectedSource,
+    selectSource,
+    isDocumentPreviewOpen,
     setIsDocumentPreviewOpen,
-    previewDocument 
+    previewDocument
   } = useSources();
 
   const handleSubmit = async () => {
     if (!message.trim() || isLoading) return;
-    
+
     const userMessage = message.trim();
     setMessage("");
-    
+
     // Auto-resize textarea back to original size
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
-    
+
     await sendMessage(userMessage, {
       sources: selectedSourceTypes,
       maxSources,
@@ -68,7 +68,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
   const handleTextareaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
-    
+
     // Auto-resize
     const textarea = e.target;
     textarea.style.height = "auto";
@@ -91,7 +91,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   return (
     <div className="relative min-h-screen flex">
       {/* Sidebar */}
-      <Sidebar 
+      <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         onNewChat={() => window.location.href = '/'}
@@ -101,8 +101,8 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
         {/* Top Bar */}
-        <header className="bg-card/50 backdrop-blur-lg border-b border-border p-4 flex items-center justify-between sticky top-0 z-10">
-          <div className="flex items-center gap-4">
+        <header className="bg-card/50 backdrop-blur-lg border-b border-border p-3 md:p-4 flex items-center justify-between sticky top-0 z-10">
+          <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
             <Button
               variant="ghost"
               size="sm"
@@ -112,12 +112,12 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             >
               <Menu className="h-4 w-4" />
             </Button>
-            <div>
-              <h2 className="font-heading text-lg font-semibold">Active Research Session</h2>
-              <p className="text-xs text-muted-foreground">AI Model: DeepSeek R1 32B + Multi-Source Search</p>
+            <div className="min-w-0">
+              <h1 className="text-base md:text-xl font-bold glow-text truncate">Deep Archive AI</h1>
+              <p className="text-xs text-muted-foreground">Truth Seeker v2.0</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {/* Source Filter Toggles */}
             <div className="hidden md:flex items-center gap-2 mr-4">
@@ -128,7 +128,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
               ].map(({ key, label, icon }) => (
                 <Button
                   key={key}
-                  variant={selectedSourceTypes.some(s => 
+                  variant={selectedSourceTypes.some(s =>
                     key === 'cia' ? ['cia', 'fbi', 'nara', 'nsa'].includes(s) :
                     key === 'wayback' ? s === 'wayback' :
                     s === 'web'
@@ -160,7 +160,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 </Button>
               ))}
             </div>
-            
+
             <Button
               variant="ghost"
               size="sm"
@@ -188,7 +188,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                   <p className="text-muted-foreground max-w-xl mx-auto mb-8">
                     Your cosmic truth seeker powered by advanced AI. Ask me anything and I'll search through declassified documents, historical archives, and the depths of the internet to uncover the truth.
                   </p>
-                  
+
                   {/* Example Queries */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
                     {[
@@ -233,9 +233,9 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 /* Messages */
                 <div className="max-w-3xl mx-auto space-y-6">
                   {messages.map((msg) => (
-                    <MessageBubble 
-                      key={msg.id} 
-                      message={msg} 
+                    <MessageBubble
+                      key={msg.id}
+                      message={msg}
                       onCitationClick={(sourceId) => {
                         const source = currentSources.find(s => s.id === sourceId);
                         if (source) {
@@ -326,7 +326,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
           {/* Sources Panel */}
           {isSourcesPanelOpen && (
-            <SourcesPanel 
+            <SourcesPanel
               sources={currentSources}
               selectedSource={selectedSource}
               onSelectSource={selectSource}
@@ -338,7 +338,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
       </main>
 
       {/* Modals */}
-      <DocumentPreviewModal 
+      <DocumentPreviewModal
         isOpen={isDocumentPreviewOpen}
         onClose={() => setIsDocumentPreviewOpen(false)}
         source={selectedSource}

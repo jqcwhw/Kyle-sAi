@@ -80,9 +80,9 @@ export default function SourcesPanel({
   };
 
   return (
-    <aside className="w-96 bg-card border-l border-border flex flex-col" data-testid="sources-panel">
+    <aside className="w-full md:w-80 border-l border-border bg-card overflow-hidden flex flex-col" data-testid="sources-panel">
       {/* Panel Header */}
-      <div className="p-4 border-b border-border">
+      <div className="p-3 md:p-4 border-b border-border">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-foreground">Sources & Documents</h3>
           <Button
@@ -127,7 +127,7 @@ export default function SourcesPanel({
             sources.map((source, index) => {
               const isSelected = selectedSource?.id === source.id;
               const color = getSourceColor(source.type);
-              
+
               return (
                 <div
                   key={source.id}
@@ -181,7 +181,7 @@ export default function SourcesPanel({
                       </div>
                     </div>
                   </div>
-                  
+
                   {isSelected && (
                     <div className="mt-3 pt-3 border-t border-border/50">
                       <Button
