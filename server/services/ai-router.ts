@@ -15,7 +15,7 @@ const AI_MODELS: AIModelConfig[] = [
     id: 'groq-llama',
     name: 'Llama 3.3 70B (Groq)',
     endpoint: 'https://api.groq.com/openai/v1/chat/completions',
-    apiKey: process.env.GROQ_API_KEY || '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',
+    apiKey: process.env.GROQ_API_KEY,
     isFree: true,
     priority: 1
   },

@@ -26,7 +26,7 @@ export class PerplexityService {
   private apiKey: string;
 
   constructor() {
-    this.apiKey = process.env.OPENROUTER_API_KEY || "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";
+    this.apiKey = process.env.OPENROUTER_API_KEY || "";
   }
 
   async search(query: string): Promise<{ content: string; sources: Source[] }> {

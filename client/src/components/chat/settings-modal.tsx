@@ -9,6 +9,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -16,9 +23,9 @@ interface SettingsModalProps {
   selectedSources: string[];
   onSourcesChange: (sources: string[]) => void;
   maxSources: number;
-  onMaxSourcesChange: (value: number) => void;
+  onMaxSourcesChange: (max: number) => void;
   archiveYears: number;
-  onArchiveYearsChange: (value: number) => void;
+  onArchiveYearsChange: (years: number) => void;
   selectedModel: string;
   onModelChange: (model: string) => void;
 }
@@ -35,203 +42,112 @@ export default function SettingsModal({
   selectedModel,
   onModelChange,
 }: SettingsModalProps) {
-  const [localSources, setLocalSources] = useState(selectedSources);
-  const [localMaxSources, setLocalMaxSources] = useState(maxSources);
-  const [localArchiveYears, setLocalArchiveYears] = useState(archiveYears);
-  const [localSelectedModel, setLocalSelectedModel] = useState(selectedModel);
+  const sourceTypes = [
+    { id: 'cia', label: 'CIA FOIA', description: 'CIA declassified documents' },
+    { id: 'fbi', label: 'FBI Vault', description: 'FBI investigative files' },
+    { id: 'nara', label: 'National Archives', description: 'Historical government records' },
+    { id: 'nsa', label: 'NSA', description: 'NSA declassified materials' },
+    { id: 'wayback', label: 'Wayback Machine', description: 'Archived web pages' },
+    { id: 'web', label: 'Web Search', description: 'Current web results' },
+  ];
 
-  const handleSave = () => {
-    onSourcesChange(localSources);
-    onMaxSourcesChange(localMaxSources);
-    onArchiveYearsChange(localArchiveYears);
-    onModelChange(localSelectedModel);
-    onClose();
-  };
+  const models = [
+    { id: 'groq-llama', label: 'Llama 3.3 70B (Groq)' },
+    { id: 'openrouter-deepseek', label: 'DeepSeek R1 (OpenRouter)' },
+    { id: 'huggingface-qwen', label: 'Qwen 2.5 7B (HuggingFace)' },
+  ];
 
-  const handleCancel = () => {
-    setLocalSources(selectedSources);
-    setLocalMaxSources(maxSources);
-    setLocalArchiveYears(archiveYears);
-    setLocalSelectedModel(selectedModel);
-    onClose();
-  };
-
-  const toggleSource = (source: string) => {
-    setLocalSources(prev => 
-      prev.includes(source) 
-        ? prev.filter(s => s !== source)
-        : [...prev, source]
-    );
-  };
-
-  const aiModels = [
-    {
-      id: 'groq-llama',
-      name: 'Llama 3.3 70B (Groq)',
-      description: 'Fast & reliable, best overall performance',
-      recommended: true
-    },
-    {
-      id: 'huggingface-qwen',
-      name: 'Qwen 2.5 7B',
-      description: 'Multilingual, strong reasoning'
-    },
-    {
-      id: 'huggingface-phi',
-      name: 'Phi-3.5 Mini',
-      description: 'Compact & efficient'
-    },
-    {
-      id: 'huggingface-mistral',
-      name: 'Mistral 7B',
-      description: 'Balanced performance'
-    },
-    {
-      id: 'openrouter-deepseek',
-      name: 'DeepSeek R1',
-      description: 'Advanced reasoning (may have rate limits)'
+  const handleSourceToggle = (sourceId: string, checked: boolean) => {
+    if (checked) {
+      onSourcesChange([...selectedSources, sourceId]);
+    } else {
+      onSourcesChange(selectedSources.filter(id => id !== sourceId));
     }
-  ];
-
-  const searchSources = [
-    { id: 'cia', name: 'CIA FOIA Reading Room' },
-    { id: 'fbi', name: 'FBI Vault' },
-    { id: 'nara', name: 'National Archives (NARA)' },
-    { id: 'nsa', name: 'NSA Declassified Materials' },
-    { id: 'wayback', name: 'Internet Archive / Wayback Machine' },
-    { id: 'web', name: 'General Web Search' }
-  ];
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl w-full max-h-[80vh] flex flex-col p-0" data-testid="settings-modal">
-        {/* Modal Header */}
-        <DialogHeader className="p-6 border-b border-border">
-          <DialogTitle className="text-xl font-bold">Research Settings</DialogTitle>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Search Settings</DialogTitle>
         </DialogHeader>
 
-        {/* Settings Content */}
-        <div className="flex-1 overflow-y-auto scrollbar-thin p-6 space-y-6">
+        <div className="space-y-6">
           {/* AI Model Selection */}
-          <div>
-            <h4 className="font-semibold text-foreground mb-3">AI Model</h4>
-            <div className="space-y-2">
-              {aiModels.map((model) => (
-                <Label
-                  key={model.id}
-                  className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
-                    selectedModel === model.id 
-                      ? 'border-primary bg-primary/10' 
-                      : 'border-border hover:bg-muted/10'
-                  }`}
-                  data-testid={`model-option-${model.id}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="model"
-                      checked={localSelectedModel === model.id}
-                      onChange={() => setLocalSelectedModel(model.id)}
-                      className="w-4 h-4 text-primary"
-                    />
-                    <div>
-                      <p className="font-medium text-foreground">{model.name}</p>
-                      <p className="text-xs text-muted-foreground">{model.description}</p>
-                    </div>
-                  </div>
-                  {model.recommended && (
-                    <span className="px-2 py-1 bg-primary/20 text-primary text-xs rounded">
-                      Recommended
-                    </span>
-                  )}
-                </Label>
-              ))}
-            </div>
+          <div className="space-y-2">
+            <Label>AI Model</Label>
+            <Select value={selectedModel} onValueChange={onModelChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select AI model" />
+              </SelectTrigger>
+              <SelectContent>
+                {models.map(model => (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Search Sources */}
-          <div>
-            <h4 className="font-semibold text-foreground mb-3">Search Sources</h4>
-            <div className="space-y-2">
-              {searchSources.map((source) => (
-                <Label
-                  key={source.id}
-                  className="flex items-center p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/10 transition-colors"
-                  data-testid={`source-option-${source.id}`}
-                >
+          {/* Source Types */}
+          <div className="space-y-3">
+            <Label>Source Types</Label>
+            <div className="grid grid-cols-1 gap-3">
+              {sourceTypes.map(source => (
+                <div key={source.id} className="flex items-start space-x-3">
                   <Checkbox
-                    checked={localSources.includes(source.id)}
-                    onCheckedChange={() => toggleSource(source.id)}
-                    className="mr-3"
+                    id={source.id}
+                    checked={selectedSources.includes(source.id)}
+                    onCheckedChange={(checked) => handleSourceToggle(source.id, !!checked)}
                   />
-                  <span className="text-sm">{source.name}</span>
-                </Label>
+                  <div className="grid gap-1.5 leading-none">
+                    <Label htmlFor={source.id} className="text-sm font-medium">
+                      {source.label}
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {source.description}
+                    </p>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Search Depth */}
-          <div>
-            <h4 className="font-semibold text-foreground mb-3">Search Depth</h4>
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label className="text-sm text-muted-foreground">
-                    Maximum sources to retrieve
-                  </Label>
-                  <span className="text-sm font-medium text-foreground">
-                    {localMaxSources}
-                  </span>
-                </div>
-                <Slider
-                  value={[localMaxSources]}
-                  onValueChange={(values) => setLocalMaxSources(values[0])}
-                  min={5}
-                  max={50}
-                  step={1}
-                  className="w-full"
-                  data-testid="slider-max-sources"
-                />
-              </div>
-              
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label className="text-sm text-muted-foreground">
-                    Archive search years back
-                  </Label>
-                  <span className="text-sm font-medium text-foreground">
-                    {localArchiveYears}
-                  </span>
-                </div>
-                <Slider
-                  value={[localArchiveYears]}
-                  onValueChange={(values) => setLocalArchiveYears(values[0])}
-                  min={5}
-                  max={75}
-                  step={1}
-                  className="w-full"
-                  data-testid="slider-archive-years"
-                />
-              </div>
-            </div>
+          {/* Max Sources */}
+          <div className="space-y-3">
+            <Label>Maximum Sources: {maxSources}</Label>
+            <Slider
+              value={[maxSources]}
+              onValueChange={(value) => onMaxSourcesChange(value[0])}
+              max={50}
+              min={5}
+              step={5}
+              className="w-full"
+            />
           </div>
-        </div>
 
-        {/* Modal Footer */}
-        <div className="p-6 border-t border-border flex items-center justify-end gap-3">
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-            data-testid="button-cancel-settings"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            data-testid="button-save-settings"
-          >
-            Save Changes
-          </Button>
+          {/* Archive Years */}
+          <div className="space-y-3">
+            <Label>Archive Years Back: {archiveYears}</Label>
+            <Slider
+              value={[archiveYears]}
+              onValueChange={(value) => onArchiveYearsChange(value[0])}
+              max={75}
+              min={1}
+              step={1}
+              className="w-full"
+            />
+          </div>
+
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button onClick={onClose}>
+              Save Settings
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
