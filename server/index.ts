@@ -4,13 +4,15 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
-declare module 'http' {
-  interface IncomingMessage {
-    rawBody: unknown
+declare global {
+  namespace Express {
+    interface Request {
+      rawBody?: Buffer;
+    }
   }
 }
 app.use(express.json({
-  verify: (req, _res, buf) => {
+  verify: (req: any, _res, buf) => {
     req.rawBody = buf;
   }
 }));
