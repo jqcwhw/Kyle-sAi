@@ -1,6 +1,4 @@
 
-const fetch = require('node-fetch');
-
 async function testSearch() {
   console.log('🔍 Testing Deep Archive AI Search...\n');
   
