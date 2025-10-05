@@ -10,7 +10,7 @@ import { chatRequestSchema, insertSearchHistorySchema, insertBookmarkSchema, typ
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
+
   // Chat endpoint - main AI search functionality
   app.post("/api/chat", async (req, res) => {
     try {
@@ -46,12 +46,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         // 1. Search with AI Router (with optional model selection)
-        const aiResult = selectedModel 
+        const aiResult = selectedModel
           ? await aiRouter.searchWithSpecificModel(message, selectedModel)
           : await aiRouter.searchWithFallback(message);
         aiResponse = `[Using ${aiResult.modelUsed}]\n\n${aiResult.content}`;
         allSources.push(...aiResult.sources);
-        
+
         // 2. Deep scrape archives if AI search is limited
         try {
           const scrapedSources = await deepScraper.scrapeArchives(message);
@@ -116,12 +116,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid request format", errors: error.errors });
       }
-      
+
       // Send a meaningful error response
       const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-      res.status(500).json({ 
+      res.status(500).json({
         message: "Search temporarily unavailable. Please try again.",
-        error: errorMessage 
+        error: errorMessage
       });
     }
   });

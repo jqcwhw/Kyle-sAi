@@ -52,13 +52,17 @@ export default function MessageBubble({ message, onCitationClick, onBookmark }: 
   const contentParts = parseContentWithCitations(message.content);
   const formatTimestamp = (date: Date | string | undefined) => {
     if (!date) return '';
-    const d = typeof date === 'string' ? new Date(date) : date;
-    if (isNaN(d.getTime())) return '';
-    return d.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (e) {
+      return '';
+    }
   };
 
   if (isUser) {
