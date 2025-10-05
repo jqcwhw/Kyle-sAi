@@ -55,39 +55,53 @@ export class DeepScraper {
   }
 
   async scrapePage(url: string): Promise<ScrapeResult> {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': this.getRandomUserAgent(),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'DNT': '1',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1'
-      }
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': this.getRandomUserAgent(),
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'DNT': '1',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1'
+        }
+      });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch ${url}: ${response.status}`);
-    }
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${url}: ${response.status}`);
+      }
 
     const html = await response.text();
-    const $ = cheerio.load(html);
-    
-    // Remove scripts and styles
-    $('script, style, noscript').remove();
-    
-    const title = $('title').text() || $('h1').first().text() || 'Document';
-    const content = $('body').text().replace(/\s+/g, ' ').trim();
-    
-    return {
-      title,
-      content,
-      url,
-      metadata: {
-        description: $('meta[name="description"]').attr('content') || '',
-        keywords: $('meta[name="keywords"]').attr('content') || ''
+      const $ = cheerio.load(html);
+      
+      // Remove scripts and styles
+      $('script, style, noscript').remove();
+      
+      const title = $('title').text() || $('h1').first().text() || 'Document';
+      const content = $('body').text().replace(/\s+/g, ' ').trim();
+      
+      return {
+        title,
+        content,
+        url,
+        metadata: {
+          description: $('meta[name="description"]').attr('content') || '',
+          keywords: $('meta[name="keywords"]').attr('content') || ''
+        }
+      };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error(`Request timeout for ${url}`);
       }
-    };
+      throw error;
+    }
   }
 
   private parseSearchResults(scraped: ScrapeResult, type: Source['type']): Source[] {

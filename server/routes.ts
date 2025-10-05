@@ -89,12 +89,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         aiResponse = "I encountered an issue while searching through the archives. However, I can still provide some general information based on my knowledge base. Please note that some sources may be temporarily unavailable.";
       }
 
-      // Save AI response message
+      // Save AI response message with proper serialization
       const responseMessage = await storage.createMessage({
         conversationId: conversation.id,
         role: "assistant",
         content: aiResponse,
-        sources: allSources.slice(0, maxSources), // Limit total sources
+        sources: allSources.slice(0, maxSources),
       });
 
       // Update conversation timestamp
@@ -107,13 +107,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messageId: responseMessage.id,
       };
 
+      console.log(`✅ Chat response sent for conversation ${conversation.id}`);
       res.json(response);
     } catch (error) {
-      console.error("Chat error:", error);
+      console.error("❌ Chat error:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid request format", errors: error.errors });
       }
-      res.status(500).json({ message: "Internal server error" });
+      
+      // Send a meaningful error response
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      res.status(500).json({ 
+        message: "Search temporarily unavailable. Please try again.",
+        error: errorMessage 
+      });
     }
   });
 

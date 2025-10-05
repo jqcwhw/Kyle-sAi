@@ -50,15 +50,16 @@ export default function MessageBubble({ message, onCitationClick, onBookmark }: 
   };
 
   const contentParts = parseContentWithCitations(message.content);
-  const formatTimestamp = (date: Date) => {
+  const formatTimestamp = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
     const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
+    const diffInMs = now.getTime() - dateObj.getTime();
+    const diffInMins = Math.floor(diffInMs / 60000);
 
-    if (minutes < 1) return "Just now";
-    if (minutes < 60) return `${minutes}m ago`;
-    if (minutes < 1440) return `${Math.floor(minutes / 60)}h ago`;
-    return date.toLocaleDateString();
+    if (diffInMins < 1) return 'Just now';
+    if (diffInMins < 60) return `${diffInMins}m ago`;
+    if (diffInMins < 1440) return `${Math.floor(diffInMins / 60)}h ago`;
+    return dateObj.toLocaleDateString();
   };
 
   if (isUser) {

@@ -22,7 +22,7 @@ const AI_MODELS: AIModelConfig[] = [
   {
     id: 'huggingface-mistral',
     name: 'Mistral 7B (HuggingFace)',
-    endpoint: 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2',
+    endpoint: 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3',
     apiKey: process.env.HUGGINGFACE_API_KEY,
     isFree: true,
     priority: 2
@@ -30,7 +30,7 @@ const AI_MODELS: AIModelConfig[] = [
   {
     id: 'huggingface-llama',
     name: 'Llama 3.2 (HuggingFace)',
-    endpoint: 'https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct',
+    endpoint: 'https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct',
     apiKey: process.env.HUGGINGFACE_API_KEY,
     isFree: true,
     priority: 3
